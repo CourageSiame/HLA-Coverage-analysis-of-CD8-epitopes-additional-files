@@ -1,4 +1,4 @@
-# HLA Coverage analysis of CD8 epitopes additional files
+# HLA Coverage analysis of CD8 epitopes additional files [![DOI](https://zenodo.org/badge/1064722485.svg)](https://doi.org/10.5281/zenodo.17210551)
 # This Repository contains additional files that support the results report in "An in silico analysis of population HLA coverage of experimentally characterized P. falciparum epitopes as components of a multiepitope malaria vaccine" by Siame et al. 
 
  Supplementary file 1 consists of 3 sheets. 
