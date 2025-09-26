@@ -1,0 +1,97 @@
+---
+title: "Geographic subregions population coverage"
+author: "Courage Siame"
+date: "2024-03-23"
+output:
+  html_document:
+    df_print: paged
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "C:/Users/User/Desktop/pop coverage work")
+
+```
+
+
+Necessary packages
+```{r}
+library(tidyverse)
+library(readr)         # for reading CSV files
+library(readxl)        # for reading Excel files (optional)
+library(pheatmap)      # for heatmap with clustering
+library(dplyr)         # for data manipulation
+library(RColorBrewer)  # for color palettes
+```
+Loading the data
+```{r}
+preData <- read.csv("popcovedata.csv",header=T)
+View(preData)
+#preData <- preData[-(6),-(6)] for removing excess columns
+
+#converting the values to percentage
+scalar <- 100
+transformed.preData <- preData|>mutate(across(c(2:16), function(x) x*scalar))
+View(transformed.preData)
+
+#transforming the data
+heat_df <- transformed.preData %>%
+  pivot_longer(cols = c(2:16), names_to = "Country", values_to = "p_pcvg") %>%
+  mutate(Country = gsub("\\.", " ", Country))  # Replace "." with space
+
+heat_df
+```
+
+Creating a heatmap of HLA coverage by peptides in the 14 regions and the world.
+
+```{r}
+p <- heat_df|> ggplot(aes(Epitopes,Country,fill = p_pcvg))+geom_tile(color = "black")+labs(fill = "%PC")+theme_minimal()+theme(legend.position = "right")+scale_fill_gradient2(low = "#cf30a9",high = "#E6521F")
+
+p1 <- p+theme(axis.text.x = element_text(angle = 90, vjust = 1, hjust=1, ))+xlab(label = "")+ylab(label = "")
+
+p1
+
+ggsave("geosubreg.jpeg", width = 16, height = 12, dpi = 300)
+```
+
+
+CORRELATION MATRIX
+STEP 1: Prepare data
+```{r}
+# Assuming first column is epitope names, store it separately
+row_names <- transformed.preData[[1]]
+data_numeric <- transformed.preData %>% select_if(is.numeric)
+
+# Add row names
+row.names(data_numeric) <- row_names
+```
+
+STEP 2: Generate correlation matrix (epitope-wise) 
+```{r}
+# Transpose to compute correlations between epitopes, not populations
+cor_matrix <- cor(t(data_numeric), method = "spearman")  # or "pearson"
+```
+
+STEP 3: Visualize as clustered heatmap 
+```{r}
+corplot <- pheatmap(cor_matrix,
+         clustering_distance_rows = "euclidean",
+         clustering_distance_cols = "euclidean",
+         clustering_method = "complete",
+         display_numbers = TRUE,
+         number_format = "%.2f",
+         main = "",
+         color = colorRampPalette(brewer.pal(9, "RdBu"))(100),
+         fontsize_row = 12,
+         fontsize_col = 12,
+         border_color = NA)
+
+ggsave("corplot.jpeg", plot = corplot, width = 16, height = 12, dpi = 300)
+```
+
+
+
+
+
